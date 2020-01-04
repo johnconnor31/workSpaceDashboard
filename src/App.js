@@ -36,7 +36,6 @@ function App() {
 		notifications: []
 	});
 
-	console.log('current widgets', widgetPositions);
 
 	function calculateNewPosition(difference, widgetPositions, elementType) {
 		const widgetPos = Object.assign({}, widgetPositions);
@@ -52,15 +51,11 @@ function App() {
 		} else {
 			currentWidget[1]+=difference.x;
 		}
-		const overlap = getOverlap(currentWidget, widgetPos, elementType);
-		if(!overlap) {
-			return {...widgetPos, [elementType]:currentWidget}
-		} else {
-		return '';
-		}
+		const fixedWidget = fixOverlap(currentWidget, widgetPos, elementType);
+		return {...widgetPos, [elementType]:fixedWidget}
 	}
 
-	function getOverlap(widget, widgetPositions, elementType) {
+	function fixOverlap(widget, widgetPositions, elementType) {
 		for(var key in widgetPositions) {
 			if(key!== elementType) {
 				const currentWidget = widgetPositions[key];
@@ -73,13 +68,16 @@ function App() {
 			const widgetLeft = widget[1];
 			const widgetHeight = widget[2];
 			const widgetWidth = widget[3];
-			if(((widgetTop>top && widgetTop<top+height) || (widgetTop+widgetHeight>top && widgetTop+widgetHeight < top+height) )&& ( (widgetLeft>left && widgetLeft<left+width) || (widgetLeft+widgetWidth> left && widgetLeft+widgetWidth< left+width))){
+			if((widgetTop>top && widgetTop<top+height) || (widgetTop+widgetHeight>top && widgetTop+widgetHeight < top+height)){
+				if((widgetLeft>left && widgetLeft<left+width) || (widgetLeft+widgetWidth> left && widgetLeft+widgetWidth< left+width)){
 				console.log('there is overlap');
-				return true;
+				widget[1] = left- widget[3];
+				return widget;
+				}
 			}
 		}
 		}
-		return false;
+		return widget;
 	}
 
 	function closeNotification(index) {
