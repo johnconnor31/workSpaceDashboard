@@ -3,13 +3,13 @@ import { useDrop } from 'react-dnd';
 import ChartData from './ChartData';
 import ChartGraph from './ChartGraph';
 import Notifications from './Notifications';
-import data from './static/data';
+import dataJson from './static/data';
 import './App.css';
 
 const dataSets = arrangeData();
 
 function App() {
-	const [ dataIds, setDataIds ] = useState([0]);
+	const [ dataIds, setDataIds ] = useState(dataSets.map(() => 0));
 	const [ widgetDataSources, setWidgetDataSources ] = useState([ 0 ]);
 	const [ graphWidgets, setGraphWidgets ] = useState([ 0 ]);
 	function addWidgetDataSource() {
@@ -21,7 +21,7 @@ function App() {
 		setDataIds(newDataIds);
 	}
 
-	function addGraphWidget(){
+	function addGraphWidget() {
 		const newGraphWidgets = Object.assign([], graphWidgets);
 		newGraphWidgets.push(0);
 		setGraphWidgets(newGraphWidgets);
@@ -51,7 +51,7 @@ function App() {
 
 	const [ widgetPositions, setWidgetPositions ] = useState({
 		chartData0: [],
-		chartGraph: [],
+		chartGraph0: [],
 		notifications: []
 	});
 
@@ -134,40 +134,66 @@ function App() {
 		return maxHeight;
 	}
 	function changeDataId(dataSourceIndex, value) {
-		console.log('change id', dataSourceIndex,value);
+		console.log('change id', dataSourceIndex, value);
 		const newDataIds = Object.assign([], dataIds);
 		newDataIds[dataSourceIndex] = value;
 		setDataIds(newDataIds);
 	}
+
+	function changeDataSource(index, value){
+		const newWidgetSources = Object.assign([], widgetDataSources);
+		newWidgetSources[index] = value;
+		console.log('widget sources changed', newWidgetSources);
+		setWidgetDataSources(newWidgetSources);
+	}
+
+	function changeGraphSource(index, value){
+		const newGraphWidgets = Object.assign([], graphWidgets);
+		newGraphWidgets[index] = value;
+		console.log('graph sources changed', newGraphWidgets);
+		setGraphWidgets(newGraphWidgets);
+	}
 	return (
 		<div className="App" ref={drop}>
-			{widgetDataSources.map((widgetSource, i) => (
+			{widgetDataSources.map((widgetSourceId, i) => {
+				const dataSet = dataSets[widgetSourceId].stockData;
+				return (
 					<ChartData
 						index={i}
-						changeDataId={changeDataId}
-						dataSet={dataSets[widgetSource]}
+						dataSet={dataSet}
 						dataId={dataIds[i]}
+						changeDataId={changeDataId}
+						widgetSourceId={widgetSourceId}
 						positions={widgetPositions}
 						setWidgetPositions={setWidgetPositions}
 						initialPosition={[ 0, 0 ]}
 						getNextInitialPos={getNextInitialPos}
 						addWidgetDataSource={addWidgetDataSource}
+						dataSets={dataSets}
+						changeDataSource={changeDataSource}
 					/>
-			))}
-			{graphWidgets.map((graphId, i) =>{
-				const widgetSource = widgetDataSources[graphId];
+				);
+			})}
+			{graphWidgets.map((graphSourceId, i) => {
+				const widgetSource = widgetDataSources[graphSourceId];
 				const dataId = dataIds[widgetSource];
-			return <ChartGraph
-				index={i}
-				dataSet={dataSets[widgetSource][dataId]}
-				positions={widgetPositions}
-				setWidgetPositions={setWidgetPositions}
-				initialPosition={[ 0, 350 ]}
-				getNextInitialPos={getNextInitialPos}
-				addGraphWidget={addGraphWidget}
-			/>;
-			}
-			)}
+				const dataSet = dataSets[widgetSource].stockData[dataId];
+				console.log('graph getting data from', widgetSource, dataId);
+				return (
+					<ChartGraph
+						index={i}
+						graphSourceId={graphSourceId}
+						dataSet={dataSet}
+						positions={widgetPositions}
+						setWidgetPositions={setWidgetPositions}
+						initialPosition={[ 0, 350 ]}
+						getNextInitialPos={getNextInitialPos}
+						addGraphWidget={addGraphWidget}
+						widgetDataSources={widgetDataSources}
+						changeGraphSource={changeGraphSource}
+					/>
+				);
+			})}
 			<Notifications
 				items={notifications}
 				closeItem={closeNotification}
@@ -180,26 +206,31 @@ function App() {
 }
 
 function arrangeData() {
-	const result = [];
-	data.forEach((item) => {
+	const result = { 
+		name: dataJson.name
+	};
+	const stockData = [];
+	dataJson.data.forEach((item) => {
+		console.log('current item', item);
 		const date = item['date'];
 		for (var key in item) {
 			if (key !== 'date') {
-				let index = result.findIndex((item) => item.name === key);
+				let index = stockData.findIndex((item) => item.name === key);
 				if (index === -1) {
-					result.push({
+					stockData.push({
 						name: key,
 						data: []
 					});
-					index = result.length - 1;
+					index = stockData.length - 1;
 				}
-				result[index].data.push({
+				stockData[index].data.push({
 					value: item[key],
 					date
 				});
 			}
 		}
 	});
+	result.stockData = stockData;
 	console.log('result', result);
 	return [ result, result, result ];
 }

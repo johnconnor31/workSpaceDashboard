@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListSubheader from '@material-ui/core/ListSubheader';
+import Chip from '@material-ui/core/Chip';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
 import IconButton from '@material-ui/core/IconButton';
@@ -32,9 +34,9 @@ const chartDataStyle = (top, left) => ({
 });
 export default function ChartData(props) {
 	const chartDataRef = useRef();
-	const { index, dataSet, dataId, changeDataId, positions, setWidgetPositions, initialPosition, addWidgetDataSource, getNextInitialPos } = props;
-	console.log('chart data positions', positions);
-	const [ isDragging, drag ] = useDrag({
+	const { index, dataSet, dataId, changeDataId, positions, widgetSourceId, setWidgetPositions, initialPosition, addWidgetDataSource, getNextInitialPos, dataSets, changeDataSource } = props;
+	console.log('chart data', dataSets, widgetSourceId);
+	const [, drag ] = useDrag({
 		item: {
 			type: 'chartData',
 			index
@@ -79,15 +81,24 @@ export default function ChartData(props) {
 				component="nav"
 				subheader={
 					<>
-					<ListSubheader component="div" classes={{ root: styles.subHeader }}>
-						Apple (AAPL) Stock
+					<Chip
+					label={index}
+					color='primary'
+					size='small'
+				/>
+					<Select value={widgetSourceId} onChange={(event) => changeDataSource(index, event.target.value)}>
+					{dataSets.map((dataSet, i) => 
+						<MenuItem key={'sourceMenu'+i} value={i}>
+							{dataSet.name}
+						</MenuItem>
+					)}
+					</Select>
 					<IconButton classes={{root: styles.addNewDataChart}} onClick={addWidgetDataSource}><AddCircleIcon /></IconButton>
-					</ListSubheader>
 					</>
 				}
 				ref={drag}
 			>
-				<ChartList dataSet={dataSet} selectedindex={dataId} onClickItem={(value) => changeDataId(index, value)} />
+				<ChartList dataSet={dataSet} selectedindex={dataId} onClickItem={(value) => changeDataId(widgetSourceId, value)} />
 			</List>
 		</div>
 	);

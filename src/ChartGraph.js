@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useDrag } from 'react-dnd';
 import { createChart } from 'lightweight-charts';
-import ListSubheader from '@material-ui/core/ListSubheader';
+import Chip from '@material-ui/core/Chip';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
@@ -15,7 +17,7 @@ const useStyles = makeStyles(() => ({
 export default function ChartGraph(props) {
 	const styles = useStyles();
 	const chartGraphRef = useRef();
-	const { index, dataSet, positions, setWidgetPositions, initialPosition, getNextInitialPos, addGraphWidget } = props;
+	const { index, dataSet,dataId, graphSourceId, positions, setWidgetPositions, initialPosition, getNextInitialPos, addGraphWidget, widgetDataSources, changeGraphSource } = props;
 	console.log('dataset is', dataSet);
 	const [isDragging, drag] = useDrag({
 		item: {
@@ -98,7 +100,14 @@ export default function ChartGraph(props) {
 	return (
 		<div ref={chartGraphRef} style={{top, left, height: '400px', width: '32%', position: 'absolute', border: '1px solid lightgrey'}}>
 			<div className={'chartGraph'+index} ref={drag}>
-				<ListSubheader style={{cursor: 'move'}}>{dataSet.name} source: 'dataset1' <IconButton classes={{root: styles.addNewDataChart}} onClick={addGraphWidget}><AddCircleIcon /></IconButton></ListSubheader>
+			<Select value={graphSourceId} onChange={(event) => changeGraphSource(index, event.target.value)}>
+					{widgetDataSources.map((source, i) => 
+						<MenuItem key={'widgetSourceMenu'+i} value={i}>
+							<Chip label={i} color='primary' size='small' />
+						</MenuItem>
+					)}
+			</Select>
+			<IconButton classes={{root: styles.addNewDataChart}} onClick={addGraphWidget}><AddCircleIcon /></IconButton>
 			</div>
 		</div>
 	);
