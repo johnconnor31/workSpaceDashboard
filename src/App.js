@@ -6,10 +6,19 @@ import Notifications from './Notifications';
 import data from './static/data';
 import './App.css';
 
-const dataSet = arrangeData();
+const dataSets = arrangeData();
 
 function App() {
-	const [ dataId, setDataId ] = useState(0);
+	const [ dataIds, setDataIds ] = useState([0]);
+	const [widgetDataSources, setWidgetDataSources] = useState([0]);
+	function addWidgetDataSource(){
+		const newSources = Object.assign([], widgetDataSources);
+		const newDataIds = Object.assign([], dataIds);
+		newDataIds.push(0);
+		widgetDataSources.push(0);
+		setWidgetDataSources(widgetDataSources);
+		setDataIds(newDataIds);
+	}
 	const [ notifications, setNotifications ] = useState([
 		{ text: 'Apple stocks has just increased' },
 		{ text: 'ICICI stocks collapsed' },
@@ -20,10 +29,12 @@ function App() {
 		{ text: 'ICICI stocks collapsed' }
 	]);
 	const [ , drop ] = useDrop({
-		accept: ['chartData','chartGraph', 'notifications'],
+		accept: ['chartData','chartGraph','notifications'],
 		drop: (item, monitor) => {
+			const elementType = item.index!==undefined ? item.type+item.index : item.type;
+			console.log('type', elementType);
 			const difference = monitor.getDifferenceFromInitialOffset();
-			const newWidgetPos = calculateNewPosition(difference, widgetPositions, item.type);
+			const newWidgetPos = calculateNewPosition(difference, widgetPositions, elementType);
 			if(newWidgetPos){
 				setWidgetPositions(newWidgetPos);
 			}
@@ -31,7 +42,7 @@ function App() {
 		});
 
 	const [ widgetPositions, setWidgetPositions ] = useState({
-		chartData: [],
+		chartData0: [],
 		chartGraph: [],
 		notifications: []
 	});
@@ -86,18 +97,49 @@ function App() {
 		setNotifications(notifs);
 		console.log('closing', index, notifications);
 	}
-
+	function getNextInitialPos(currentWidget) {
+		const keys = Object.keys(widgetPositions);
+		const lastWidget = widgetPositions[keys[keys.length-1]];
+		console.log('last widget', widgetPositions[keys[keys.length-1]]);
+		const currentWidgetWidth = widgetPositions[currentWidget+'0'][3];
+		if(window.innerWidth< lastWidget[1]+ lastWidget[3] + currentWidgetWidth) {
+			console.log('screen width exceeded');
+			const nextHeight = getMaxElHeight();
+			console.log('next height', nextHeight);
+			return [nextHeight+20, 10];
+		}
+		return [lastWidget[0], lastWidget[1]+ lastWidget[3]];
+	}
+	function getMaxElHeight(){
+		let maxHeight=0;
+		for(var key in widgetPositions) {
+			const pos = widgetPositions[key];
+			if(maxHeight< pos[0]+pos[2]) {
+				maxHeight = pos[0]+pos[2];
+			}
+		}
+			return maxHeight;
+	}
+	function changeDataId(index, value) {
+		const newDataIds = Object.assign([], dataIds);
+		newDataIds[index] = value;
+		setDataIds(newDataIds);
+	}
 	return (
 		<div className="App" ref={drop}>
-			<ChartData
-				changeDataId={setDataId}
-				dataSet={dataSet}
-				dataId={dataId}
+			{widgetDataSources.map((widgetSource,i) => <ChartData
+				index={i}
+				changeDataId={changeDataId}
+				dataSet={dataSets[widgetSource]}
+				dataId={dataIds[i]}
 				positions={widgetPositions}
 				setWidgetPositions={setWidgetPositions}
 				initialPosition={[0,0]}
+				getNextInitialPos={getNextInitialPos}
+				addWidgetDataSource={addWidgetDataSource}
 			/>
-			<ChartGraph dataSet={dataSet[dataId]} positions={widgetPositions} setWidgetPositions={setWidgetPositions} initialPosition={[0, 350]}/>
+			)}
+			<ChartGraph dataSet={dataSets[0][dataIds[0]]} positions={widgetPositions} setWidgetPositions={setWidgetPositions} initialPosition={[0, 350]}/>
 			<Notifications items={notifications} closeItem={closeNotification} positions={widgetPositions} setWidgetPositions={setWidgetPositions} initialPosition={[0, 1050]} />
 		</div>
 	);
@@ -125,7 +167,7 @@ function arrangeData() {
 		}
 	});
 	console.log('result', result);
-	return result;
+	return [result, result, result];
 }
 
 export default App;
