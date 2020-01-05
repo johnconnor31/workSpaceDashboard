@@ -87,7 +87,7 @@ export default function ChartData(props) {
 				}
 				ref={drag}
 			>
-				<ChartList dataSet={dataSet} selectedindex={dataId} onClickItem={changeDataId} />
+				<ChartList dataSet={dataSet} selectedindex={dataId} onClickItem={(value) => changeDataId(index, value)} />
 			</List>
 		</div>
 	);

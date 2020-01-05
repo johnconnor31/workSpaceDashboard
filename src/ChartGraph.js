@@ -2,42 +2,60 @@ import React, { useEffect, useRef } from 'react';
 import { useDrag } from 'react-dnd';
 import { createChart } from 'lightweight-charts';
 import ListSubheader from '@material-ui/core/ListSubheader';
+import { makeStyles } from '@material-ui/core/styles';
+import IconButton from '@material-ui/core/IconButton';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 
-export default function AddChartGraph(props) {
+const useStyles = makeStyles(() => ({
+	addNewDataChart: {
+		float: 'right'
+	}
+}));
+
+export default function ChartGraph(props) {
+	const styles = useStyles();
 	const chartGraphRef = useRef();
-	const { dataSet, positions, setWidgetPositions, initialPosition } = props;
-	
+	const { index, dataSet, positions, setWidgetPositions, initialPosition, getNextInitialPos, addGraphWidget } = props;
+	console.log('dataset is', dataSet);
 	const [isDragging, drag] = useDrag({
 		item: {
-			type: 'chartGraph'
+			type: 'chartGraph',
+			index
 		},
 		collect: monitor => ({
 			isDragging:  !!monitor.isDragging()
 		})
 	});
-	const position = positions.chartGraph;
-	let top = position[0];
-	let left = position[1];
-	if(!top && !left){
-		top = initialPosition[0];
-		left = initialPosition[1];
+	const position = positions['chartGraph'+index];
+	let top = position && position[0];
+	let left = position && position[1];
+	if(!top && !left) {
+		if(index === 0){
+			top = initialPosition[0];
+			left = initialPosition[1];
+		} else {
+			const initial = getNextInitialPos('chartGraph');
+			top = initial[0];
+			left = initial[1];
+			console.log('got new initial pos', top, left);
+		}
 	}
-
 	useEffect(
 		() => {
 			setWidgetPositions((widget) => {
 				return {
 					...widget,
-					chartGraph: [initialPosition[0], initialPosition[1], chartGraphRef.current.clientHeight, chartGraphRef.current.clientWidth]
+					['chartGraph'+index]: [ top, left, chartGraphRef.current.clientHeight, chartGraphRef.current.clientWidth ]
 				};
 			});
 		},
 		[ chartGraphRef ]
 	);
-	console.log('widgets are', positions);
+
+	console.log('chart graph widgets are', positions);
 	useEffect(
 		() => {
-				const chartGraph = document.getElementsByClassName('chartGraph')[0];
+				const chartGraph = document.getElementsByClassName('chartGraph'+index)[0];
 				const chartDiv = document.createElement('div');
 				const chartElement = chartGraph.appendChild(chartDiv);
 			const chart = createChart(chartElement, { width: 600, height: 300 });
@@ -79,8 +97,8 @@ export default function AddChartGraph(props) {
 
 	return (
 		<div ref={chartGraphRef} style={{top, left, height: '400px', width: '32%', position: 'absolute', border: '1px solid lightgrey'}}>
-			<div className='chartGraph' ref={drag}>
-				<ListSubheader style={{cursor: 'move'}}>{dataSet.name} source: 'dataset1'</ListSubheader>
+			<div className={'chartGraph'+index} ref={drag}>
+				<ListSubheader style={{cursor: 'move'}}>{dataSet.name} source: 'dataset1' <IconButton classes={{root: styles.addNewDataChart}} onClick={addGraphWidget}><AddCircleIcon /></IconButton></ListSubheader>
 			</div>
 		</div>
 	);
