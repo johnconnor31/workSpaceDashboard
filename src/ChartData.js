@@ -26,6 +26,9 @@ const useStyles = makeStyles(() => ({
 	},
 	chip: {
 		cursor: 'move'
+	},
+	dropDown: {
+		width: '50%'
 	}
 }));
 const chartDataStyle = (top, left) => ({
@@ -38,14 +41,12 @@ const chartDataStyle = (top, left) => ({
 export default function ChartData(props) {
 	const chartDataRef = useRef();
 	const { index, dataSet, dataId, changeDataId, positions, widgetSourceId, setWidgetPositions, initialPosition, addWidgetDataSource, getNextInitialPos, dataSets, changeDataSource } = props;
-	console.log('chart data', dataSets, widgetSourceId);
 	const [, drag ] = useDrag({
 		item: {
 			type: 'chartData',
 			index
 		},
 		collect: (monitor) => {
-			console.log('isdragging', monitor.isDragging());
 			return {
 			isDragging: !!monitor.isDragging()
 		}
@@ -62,7 +63,6 @@ export default function ChartData(props) {
 			const initial = getNextInitialPos('chartData');
 			top = initial[0];
 			left = initial[1];
-			console.log('got new initial pos', top, left);
 		}
 	}
 	useEffect(
@@ -89,7 +89,7 @@ export default function ChartData(props) {
 					label={'widget-'+index}
 					size='small'
 					/>
-					<Select value={widgetSourceId} classes={{root: styles.dropDown}} onChange={(event) => changeDataSource(index, event.target.value)}>
+					<Select value={widgetSourceId} onChange={(event) => changeDataSource(index, event.target.value)}>
 					{dataSets.map((dataSet, i) => 
 						<MenuItem key={'sourceMenu'+i} value={i}>
 							{dataSet.name}

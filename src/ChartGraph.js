@@ -34,7 +34,6 @@ export default function ChartGraph(props) {
 	const dataId = dataIds[graphSourceId];
 	const dataSet = dataSets[widgetSource].stockData[dataId];
 
-	console.log('dataset is', dataSet);
 	const [ isDragging, drag ] = useDrag({
 		item: {
 			type: 'chartGraph',
@@ -55,7 +54,6 @@ export default function ChartGraph(props) {
 			const initial = getNextInitialPos('chartGraph');
 			top = initial[0];
 			left = initial[1];
-			console.log('got new initial pos', top, left);
 		}
 	}
 	useEffect(
@@ -75,7 +73,6 @@ export default function ChartGraph(props) {
 		[ chartGraphRef ]
 	);
 
-	console.log('chart graph widgets are', positions);
 	useEffect(
 		() => {
 			const chartGraph = document.getElementsByClassName('chartGraph' + index)[0];
@@ -117,9 +114,9 @@ export default function ChartGraph(props) {
 		},
 		[ dataSet ]
 	);
-	function widgetSourceLabel(index) {
-		const dataSet = dataSets[index];
-		const dataId = dataIds[index];
+	function widgetSourceLabel(sourceId, sourceIndex) {
+		const dataSet = dataSets[sourceId];
+		const dataId = dataIds[sourceIndex];
 		const stockData = dataSet.stockData[dataId];
 		return `${dataSet.name} -- ${stockData.name}`;
 	}
@@ -138,7 +135,7 @@ export default function ChartGraph(props) {
 				<Select value={graphSourceId} onChange={(event) => changeGraphSource(index, event.target.value)}>
 					{widgetDataSources.map((sourceId, i) => (
 						<MenuItem key={'widgetSourceMenu' + i} value={i}>
-							<Chip label={`Widget-${i} `} size="small" /> {widgetSourceLabel(sourceId)}
+							<Chip label={`Widget-${i} `} size="small" /> {widgetSourceLabel(sourceId, i)}
 						</MenuItem>
 					))}
 				</Select>

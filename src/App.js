@@ -3,10 +3,10 @@ import { useDrop } from 'react-dnd';
 import ChartData from './ChartData';
 import ChartGraph from './ChartGraph';
 import Notifications from './Notifications';
-import dataJson from './static/data';
+import stockSet from './static/data';
 import './App.css';
 
-const dataSets = arrangeData();
+const dataSets = stockSet.map(dataJson => arrangeData(dataJson));
 
 function App() {
 	const [ widgetDataSources, setWidgetDataSources ] = useState([ 0 ]);
@@ -16,8 +16,8 @@ function App() {
 		const newSources = Object.assign([], widgetDataSources);
 		const newDataIds = Object.assign([], dataIds);
 		newDataIds.push(0);
-		widgetDataSources.push(0);
-		setWidgetDataSources(widgetDataSources);
+		newSources.push(0);
+		setWidgetDataSources(newSources);
 		setDataIds(newDataIds);
 	}
 
@@ -40,7 +40,6 @@ function App() {
 		accept: [ 'chartData', 'chartGraph', 'notifications' ],
 		drop: (item, monitor) => {
 			const elementType = item.index !== undefined ? item.type + item.index : item.type;
-			console.log('type', elementType);
 			const difference = monitor.getDifferenceFromInitialOffset();
 			const newWidgetPos = calculateNewPosition(difference, widgetPositions, elementType);
 			if (newWidgetPos) {
@@ -58,7 +57,6 @@ function App() {
 	function calculateNewPosition(difference, widgetPositions, elementType) {
 		const widgetPos = Object.assign({}, widgetPositions);
 		const currentWidget = widgetPos[elementType];
-		console.log('difference', difference, currentWidget);
 		if (currentWidget[0] + difference.y < 0) {
 			currentWidget[0] = 0;
 		} else {
@@ -77,7 +75,6 @@ function App() {
 		for (var key in widgetPositions) {
 			if (key !== elementType) {
 				const currentWidget = widgetPositions[key];
-				console.log('checking overlap of ', widget, currentWidget);
 				const top = currentWidget[0];
 				const left = currentWidget[1];
 				const height = currentWidget[2];
@@ -94,7 +91,6 @@ function App() {
 						(widgetLeft > left && widgetLeft < left + width) ||
 						(widgetLeft + widgetWidth > left && widgetLeft + widgetWidth < left + width)
 					) {
-						console.log('there is overlap');
 						// 10px for a small gap between widgets side-by-side
 						widget[1] = left - widget[3] - 10;
 						return widget;
@@ -109,17 +105,13 @@ function App() {
 		const notifs = Object.assign([], notifications);
 		notifs.splice(index, 1);
 		setNotifications(notifs);
-		console.log('closing', index, notifications);
 	}
 	function getNextInitialPos(currentWidget) {
 		const keys = Object.keys(widgetPositions);
 		const lastWidget = widgetPositions[keys[keys.length - 1]];
-		console.log('last widget', widgetPositions[keys[keys.length - 1]]);
 		const currentWidgetWidth = widgetPositions[currentWidget + '0'][3];
 		if (window.innerWidth < lastWidget[1] + lastWidget[3] + currentWidgetWidth) {
-			console.log('screen width exceeded');
 			const nextHeight = getMaxElHeight();
-			console.log('next height', nextHeight);
 			return [ nextHeight + 20, 10 ];
 		}
 		// 10px for gap between adjacent widgets
@@ -136,7 +128,6 @@ function App() {
 		return maxHeight;
 	}
 	function changeDataId(dataSourceIndex, value) {
-		console.log('change id', dataSourceIndex, value);
 		const newDataIds = Object.assign([], dataIds);
 		newDataIds[dataSourceIndex] = value;
 		setDataIds(newDataIds);
@@ -145,14 +136,12 @@ function App() {
 	function changeDataSource(index, value){
 		const newWidgetSources = Object.assign([], widgetDataSources);
 		newWidgetSources[index] = value;
-		console.log('widget sources changed', newWidgetSources);
 		setWidgetDataSources(newWidgetSources);
 	}
 
 	function changeGraphSource(index, value){
 		const newGraphWidgets = Object.assign([], graphWidgets);
 		newGraphWidgets[index] = value;
-		console.log('graph sources changed', newGraphWidgets);
 		setGraphWidgets(newGraphWidgets);
 	}
 	return (
@@ -204,13 +193,12 @@ function App() {
 	);
 }
 
-function arrangeData() {
+function arrangeData(dataJson) {
 	const result = { 
 		name: dataJson.name
 	};
 	const stockData = [];
 	dataJson.data.forEach((item) => {
-		console.log('current item', item);
 		const date = item['date'];
 		for (var key in item) {
 			if (key !== 'date') {
@@ -230,8 +218,7 @@ function arrangeData() {
 		}
 	});
 	result.stockData = stockData;
-	console.log('result', result);
-	return [ result, result, result ];
+	return result;
 }
 
 export default App;
