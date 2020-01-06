@@ -23,10 +23,13 @@ const useStyles = makeStyles(() => ({
 	},
 	addNewDataChart: {
 		float: 'right'
+	},
+	chip: {
+		cursor: 'move'
 	}
 }));
 const chartDataStyle = (top, left) => ({
-	width: '15%',
+	width: '16%',
 	height: 'fit-content',
 	top,
 	left,
@@ -82,11 +85,11 @@ export default function ChartData(props) {
 				subheader={
 					<>
 					<Chip
-					label={index}
-					color='primary'
+					classes={{root: styles.chip}}
+					label={'widget-'+index}
 					size='small'
-				/>
-					<Select value={widgetSourceId} onChange={(event) => changeDataSource(index, event.target.value)}>
+					/>
+					<Select value={widgetSourceId} classes={{root: styles.dropDown}} onChange={(event) => changeDataSource(index, event.target.value)}>
 					{dataSets.map((dataSet, i) => 
 						<MenuItem key={'sourceMenu'+i} value={i}>
 							{dataSet.name}
@@ -98,7 +101,7 @@ export default function ChartData(props) {
 				}
 				ref={drag}
 			>
-				<ChartList dataSet={dataSet} selectedindex={dataId} onClickItem={(value) => changeDataId(widgetSourceId, value)} />
+				<ChartList dataSet={dataSet} selectedindex={dataId} onClickItem={(value) => changeDataId(index, value)} />
 			</List>
 		</div>
 	);

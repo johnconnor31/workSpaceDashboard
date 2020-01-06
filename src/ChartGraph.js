@@ -17,22 +17,38 @@ const useStyles = makeStyles(() => ({
 export default function ChartGraph(props) {
 	const styles = useStyles();
 	const chartGraphRef = useRef();
-	const { index, dataSet,dataId, graphSourceId, positions, setWidgetPositions, initialPosition, getNextInitialPos, addGraphWidget, widgetDataSources, changeGraphSource } = props;
+	const {
+		index,
+		dataSets,
+		dataIds,
+		graphSourceId,
+		positions,
+		setWidgetPositions,
+		initialPosition,
+		getNextInitialPos,
+		addGraphWidget,
+		widgetDataSources,
+		changeGraphSource
+	} = props;
+	const widgetSource = widgetDataSources[graphSourceId];
+	const dataId = dataIds[graphSourceId];
+	const dataSet = dataSets[widgetSource].stockData[dataId];
+
 	console.log('dataset is', dataSet);
-	const [isDragging, drag] = useDrag({
+	const [ isDragging, drag ] = useDrag({
 		item: {
 			type: 'chartGraph',
 			index
 		},
-		collect: monitor => ({
-			isDragging:  !!monitor.isDragging()
+		collect: (monitor) => ({
+			isDragging: !!monitor.isDragging()
 		})
 	});
-	const position = positions['chartGraph'+index];
+	const position = positions['chartGraph' + index];
 	let top = position && position[0];
 	let left = position && position[1];
-	if(!top && !left) {
-		if(index === 0){
+	if (!top && !left) {
+		if (index === 0) {
 			top = initialPosition[0];
 			left = initialPosition[1];
 		} else {
@@ -47,7 +63,12 @@ export default function ChartGraph(props) {
 			setWidgetPositions((widget) => {
 				return {
 					...widget,
-					['chartGraph'+index]: [ top, left, chartGraphRef.current.clientHeight, chartGraphRef.current.clientWidth ]
+					['chartGraph' + index]: [
+						top,
+						left,
+						chartGraphRef.current.clientHeight,
+						chartGraphRef.current.clientWidth
+					]
 				};
 			});
 		},
@@ -57,9 +78,9 @@ export default function ChartGraph(props) {
 	console.log('chart graph widgets are', positions);
 	useEffect(
 		() => {
-				const chartGraph = document.getElementsByClassName('chartGraph'+index)[0];
-				const chartDiv = document.createElement('div');
-				const chartElement = chartGraph.appendChild(chartDiv);
+			const chartGraph = document.getElementsByClassName('chartGraph' + index)[0];
+			const chartDiv = document.createElement('div');
+			const chartElement = chartGraph.appendChild(chartDiv);
 			const chart = createChart(chartElement, { width: 600, height: 300 });
 			const areaSeries = chart.addAreaSeries({
 				topColor: 'rgba(21, 146, 230, 0.4)',
@@ -96,18 +117,34 @@ export default function ChartGraph(props) {
 		},
 		[ dataSet ]
 	);
-
+	function widgetSourceLabel(index) {
+		const dataSet = dataSets[index];
+		const dataId = dataIds[index];
+		const stockData = dataSet.stockData[dataId];
+		return `${dataSet.name} -- ${stockData.name}`;
+	}
+	const getChartStyle = (top, left) => ({
+		top,
+		left,
+		cursor: 'move',
+		height: '400px',
+		width: '32%',
+		position: 'absolute',
+		border: '1px solid lightgrey'
+	});
 	return (
-		<div ref={chartGraphRef} style={{top, left, height: '400px', width: '32%', position: 'absolute', border: '1px solid lightgrey'}}>
-			<div className={'chartGraph'+index} ref={drag}>
-			<Select value={graphSourceId} onChange={(event) => changeGraphSource(index, event.target.value)}>
-					{widgetDataSources.map((source, i) => 
-						<MenuItem key={'widgetSourceMenu'+i} value={i}>
-							<Chip label={i} color='primary' size='small' />
+		<div ref={chartGraphRef} style={getChartStyle(top, left)}>
+			<div className={'chartGraph' + index} ref={drag}>
+				<Select value={graphSourceId} onChange={(event) => changeGraphSource(index, event.target.value)}>
+					{widgetDataSources.map((sourceId, i) => (
+						<MenuItem key={'widgetSourceMenu' + i} value={i}>
+							<Chip label={`Widget-${i} `} size="small" /> {widgetSourceLabel(sourceId)}
 						</MenuItem>
-					)}
-			</Select>
-			<IconButton classes={{root: styles.addNewDataChart}} onClick={addGraphWidget}><AddCircleIcon /></IconButton>
+					))}
+				</Select>
+				<IconButton classes={{ root: styles.addNewDataChart }} onClick={addGraphWidget}>
+					<AddCircleIcon />
+				</IconButton>
 			</div>
 		</div>
 	);

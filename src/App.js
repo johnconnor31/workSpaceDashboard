@@ -9,8 +9,8 @@ import './App.css';
 const dataSets = arrangeData();
 
 function App() {
-	const [ dataIds, setDataIds ] = useState(dataSets.map(() => 0));
 	const [ widgetDataSources, setWidgetDataSources ] = useState([ 0 ]);
+	const [ dataIds, setDataIds ] = useState(widgetDataSources.map(() => 0));
 	const [ graphWidgets, setGraphWidgets ] = useState([ 0 ]);
 	function addWidgetDataSource() {
 		const newSources = Object.assign([], widgetDataSources);
@@ -95,7 +95,8 @@ function App() {
 						(widgetLeft + widgetWidth > left && widgetLeft + widgetWidth < left + width)
 					) {
 						console.log('there is overlap');
-						widget[1] = left - widget[3];
+						// 10px for a small gap between widgets side-by-side
+						widget[1] = left - widget[3] - 10;
 						return widget;
 					}
 				}
@@ -121,7 +122,8 @@ function App() {
 			console.log('next height', nextHeight);
 			return [ nextHeight + 20, 10 ];
 		}
-		return [ lastWidget[0], lastWidget[1] + lastWidget[3] ];
+		// 10px for gap between adjacent widgets
+		return [ lastWidget[0], lastWidget[1] + lastWidget[3] + 10 ];
 	}
 	function getMaxElHeight() {
 		let maxHeight = 0;
@@ -175,15 +177,11 @@ function App() {
 				);
 			})}
 			{graphWidgets.map((graphSourceId, i) => {
-				const widgetSource = widgetDataSources[graphSourceId];
-				const dataId = dataIds[widgetSource];
-				const dataSet = dataSets[widgetSource].stockData[dataId];
-				console.log('graph getting data from', widgetSource, dataId);
 				return (
 					<ChartGraph
 						index={i}
 						graphSourceId={graphSourceId}
-						dataSet={dataSet}
+						dataIds={dataIds}
 						positions={widgetPositions}
 						setWidgetPositions={setWidgetPositions}
 						initialPosition={[ 0, 350 ]}
@@ -191,6 +189,7 @@ function App() {
 						addGraphWidget={addGraphWidget}
 						widgetDataSources={widgetDataSources}
 						changeGraphSource={changeGraphSource}
+						dataSets={dataSets}
 					/>
 				);
 			})}
