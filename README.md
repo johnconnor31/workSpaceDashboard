@@ -21,3 +21,5 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 6. A primitive functionality is implemented to make sure that widgets won't overlap with each other when a widget is dropped on top of another. This functionality needs improvement on calculating the positions correctly.
 
 7. PWA has been implemented for desktop chrome . You can install the PWA by navigating the the hosted page on github [here](https://johnconnor31.github.io/workSpaceDashboard/) from chrome.
+
+8. Resizing functionality for widgets needs to be implemented along with PWA for other browsers and mobile devices.
